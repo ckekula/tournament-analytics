@@ -7,7 +7,15 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          scriptSrc: [`'self'`, `'unsafe-inline'`, 'cdn.jsdelivr.net'], // for graphql playground
+        },
+      },
+    }),
+  );
 
   app.enableCors({
     origin: process.env.ALLOWED_ORIGINS?.split(',') || 'http://localhost:3000',
