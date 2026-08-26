@@ -6,12 +6,14 @@ import {
 } from '@nestjs/common';
 import { Driver } from 'neo4j-driver';
 import { NEO4J_DRIVER } from './neo4j.constants';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class Neo4jService implements OnModuleInit, OnModuleDestroy {
   constructor(
     @Inject(NEO4J_DRIVER)
     private readonly driver: Driver,
+    private readonly configService: ConfigService,
   ) {}
 
   getDriver(): Driver {

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Neo4jGraphQL } from '@neo4j/graphql';
 import { Neo4jModule } from './neo4j/neo4j.module';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -23,11 +23,15 @@ import { typeDefs } from './graphql/schema';
 
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
+      imports: [Neo4jModule, ConfigModule],
+      inject: [Neo4jService, ConfigService],
 
-      imports: [Neo4jModule],
-      inject: [Neo4jService],
+      useFactory: async (
+        neo4j: Neo4jService,
+        config: ConfigService,
+      ): Promise<ApolloDriverConfig> => {
+        const database = config.getOrThrow<string>('NEO4J_DATABASE');
 
-      useFactory: async (neo4j: Neo4jService): Promise<ApolloDriverConfig> => {
         const neo4jGraphQL = new Neo4jGraphQL({
           typeDefs,
           driver: neo4j.getDriver(),
@@ -38,6 +42,9 @@ import { typeDefs } from './graphql/schema';
         return {
           schema,
           path: '/graphql',
+          context: () => ({
+            sessionConfig: { database },
+          }),
         };
       },
     }),

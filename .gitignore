@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL configuration
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+.env
+.venv/
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Airflow specific
+logs/
+airflow.db
+airflow.cfg
+unittests.cfg
+webserver_config.py
+standalone_admin_password.txt
+
+# Spark specific
+spark-checkpoints/
+apps/
