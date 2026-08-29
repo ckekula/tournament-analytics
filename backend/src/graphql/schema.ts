@@ -20,14 +20,13 @@ export const typeDefs = `#graphql
     MULTI_COMPETITOR
   }
 
-  enum ParticipantTypeEnum {
-    INDIVIDUAL
-    TEAM
-  }
-
   enum DisciplineEnum {
     BASKETBALL
     SOCCER
+    TRACK_AND_FIELD
+    SWIMMING
+    TENNIS
+    VOLLEYBALL
   }
 
   type User @node {
@@ -77,7 +76,7 @@ export const typeDefs = `#graphql
   # constraint or at the resolver layer.
   type Discipline @node {
     id: ID! @id
-    name: String!
+    name: DisciplineEnum!
     tournament: Tournament @relationship(type: "HAS_DISCIPLINE", direction: IN)
     events: [Event!]! @relationship(type: "HAS_EVENT", direction: OUT)
     categories: [Category!]! @relationship(type: "HAS_CATEGORY", direction: OUT)
@@ -119,6 +118,7 @@ export const typeDefs = `#graphql
     roundType: RoundTypeEnum!
     event: Event @relationship(type: "HAS_STAGE", direction: IN)
     rounds: [Round!]! @relationship(type: "HAS_ROUND", direction: OUT)
+    groups: [Group!]! @relationship(type: "HAS_GROUP", direction: OUT)
     createdAt: DateTime! @timestamp(operations: [CREATE])
     updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
   }
@@ -133,21 +133,8 @@ export const typeDefs = `#graphql
     updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
   }
 
-  type RoundParticipant @node {
-    id: ID! @id
-    performance: Int!
-    stats: JSON
-    label: String
-    round: Round @relationship(type: "HAS_ROUND_PARTICIPANT", direction: IN)
-    participant: Participant @relationship(type: "PARTICIPATED_IN", direction: IN)
-    # Forward-only bracket advancement. Multiple targets support branching
-    # paths (e.g. winner -> final, loser -> bronze-final).
-    advancesTo: [RoundParticipant!]! @relationship(type: "ADVANCES_TO", direction: OUT)
-  }
-
   type Participant @node {
     id: ID! @id
-    type: ParticipantTypeEnum!
     # Single relationship: a Participant is a
     # registration scoped to exactly one Event. A competitor entering
     # multiple events (e.g. 100m and 200m) gets a separate Participant
@@ -164,6 +151,18 @@ export const typeDefs = `#graphql
     roundParticipants: [RoundParticipant!]! @relationship(type: "PARTICIPATED_IN", direction: OUT)
     createdAt: DateTime! @timestamp(operations: [CREATE])
     updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
+  }
+
+  type RoundParticipant @node {
+    id: ID! @id
+    performance: Int!
+    stats: JSON
+    label: String
+    round: Round @relationship(type: "HAS_ROUND_PARTICIPANT", direction: IN)
+    participant: Participant @relationship(type: "PARTICIPATED_IN", direction: IN)
+    # Forward-only bracket advancement. Multiple targets support branching
+    # paths (e.g. winner -> final, loser -> bronze-final).
+    advancesTo: [RoundParticipant!]! @relationship(type: "ADVANCES_TO", direction: OUT)
   }
 
   type Individual @node {
@@ -188,6 +187,9 @@ export const typeDefs = `#graphql
     id: ID! @id
     person: Person @relationship(type: "MEMBER_PERSON", direction: OUT)
     team: Team @relationship(type: "HAS_MEMBER", direction: IN)
+    position: String
+    jerseyNumber: Int
+    captain: Boolean
     createdAt: DateTime! @timestamp(operations: [CREATE])
     updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
   }

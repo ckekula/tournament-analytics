@@ -1,0 +1,725 @@
+mutation Step1_CreateOrganizationsAndUsers {
+  createOrganizations(
+    input: [
+      { slug: "slusa", name: "Sri Lanka University Sports Association", displayName: "SLUSA", owner: { create: { node: { firstname: "Nimal", lastname: "Fernando", email: "admin@slusa.lk", password: "ChangeMe123!", roles: ["user"] } } } }
+      { slug: "uoc", name: "University of Colombo", displayName: "UOC", owner: { create: { node: { firstname: "Kasun", lastname: "Perera", email: "admin@uoc.lk", password: "ChangeMe123!", roles: ["user"] } } } }
+      { slug: "uop", name: "University of Peradeniya", displayName: "UOP", owner: { create: { node: { firstname: "Chamara", lastname: "Silva", email: "admin@uop.lk", password: "ChangeMe123!", roles: ["user"] } } } }
+      { slug: "usj", name: "University of Sri Jayewardenepura", displayName: "USJ", owner: { create: { node: { firstname: "Dilani", lastname: "Jayasuriya", email: "admin@usj.lk", password: "ChangeMe123!", roles: ["user"] } } } }
+      { slug: "uok", name: "University of Kelaniya", displayName: "UOK", owner: { create: { node: { firstname: "Sanduni", lastname: "Wickramasinghe", email: "admin@uok.lk", password: "ChangeMe123!", roles: ["user"] } } } }
+      { slug: "uom", name: "University of Moratuwa", displayName: "UOM", owner: { create: { node: { firstname: "Ruwan", lastname: "Bandara", email: "admin@uom.lk", password: "ChangeMe123!", roles: ["user"] } } } }
+      { slug: "uoj", name: "University of Jaffna", displayName: "UOJ", owner: { create: { node: { firstname: "Priyantha", lastname: "Kumarasinghe", email: "admin@uoj.lk", password: "ChangeMe123!", roles: ["user"] } } } }
+      { slug: "uor", name: "University of Ruhuna", displayName: "UOR", owner: { create: { node: { firstname: "Anushka", lastname: "Rathnayake", email: "admin@uor.lk", password: "ChangeMe123!", roles: ["user"] } } } }
+      { slug: "eus", name: "Eastern University Sri Lanka", displayName: "EUS", owner: { create: { node: { firstname: "Mohamed", lastname: "Rizwan", email: "admin@eus.lk", password: "ChangeMe123!", roles: ["user"] } } } }
+      { slug: "seu", name: "South Eastern University of Sri Lanka", displayName: "SEU", owner: { create: { node: { firstname: "Fathima", lastname: "Rasheed", email: "admin@seu.lk", password: "ChangeMe123!", roles: ["user"] } } } }
+      { slug: "sus", name: "Sabaragamuwa University of Sri Lanka", displayName: "SUS", owner: { create: { node: { firstname: "Chathura", lastname: "Gunawardena", email: "admin@sus.lk", password: "ChangeMe123!", roles: ["user"] } } } }
+      { slug: "wus", name: "Wayamba University of Sri Lanka", displayName: "WUS", owner: { create: { node: { firstname: "Nadeeka", lastname: "Ranasinghe", email: "admin@wus.lk", password: "ChangeMe123!", roles: ["user"] } } } }
+      { slug: "uwu", name: "Uva Wellassa University", displayName: "UWU", owner: { create: { node: { firstname: "Tharindu", lastname: "Weerasinghe", email: "admin@uwu.lk", password: "ChangeMe123!", roles: ["user"] } } } }
+    ]
+  ) {
+    organizations { id slug displayName owner { id email } }
+  }
+}
+
+mutation Step2_CreateTournament {
+  createTournaments(input: [{ slug: "slug-2027", name: "Sri Lanka University Games 2027", season: "2027" }]) {
+    tournaments { id slug name }
+  }
+}
+
+mutation Step3a_LinkOrganizerToTournament {
+  updateOrganizations(
+    where: { slug: { eq: "slusa" } }
+    update: {
+      organizedTournaments: {
+        connect: [{ where: { node: { slug: { eq: "slug-2027" } } } }]
+      }
+    }
+  ) {
+    organizations {
+      slug
+      organizedTournaments { slug name }
+    }
+  }
+}
+
+mutation Step3b_LinkRegisteredOrgsToTournament {
+  updateTournaments(
+    where: { slug: { eq: "slug-2027" } }
+    update: {
+      registeredOrganizations: {
+        connect: [
+          { where: { node: { slug: { eq: "uoc" } } } }
+          { where: { node: { slug: { eq: "uop" } } } }
+          { where: { node: { slug: { eq: "usj" } } } }
+          { where: { node: { slug: { eq: "uok" } } } }
+          { where: { node: { slug: { eq: "uom" } } } }
+          { where: { node: { slug: { eq: "uoj" } } } }
+          { where: { node: { slug: { eq: "uor" } } } }
+          { where: { node: { slug: { eq: "eus" } } } }
+          { where: { node: { slug: { eq: "seu" } } } }
+          { where: { node: { slug: { eq: "sus" } } } }
+          { where: { node: { slug: { eq: "wus" } } } }
+          { where: { node: { slug: { eq: "uwu" } } } }
+        ]
+      }
+    }
+  ) {
+    tournaments {
+      slug
+      registeredOrganizations { slug }
+    }
+  }
+}
+
+mutation Step4_CreateDisciplines {
+  updateTournaments(
+    where: { slug: { eq: "slug-2027" } }
+    update: { disciplines: { create: [{ node: { name: BASKETBALL } }, { node: { name: TRACK_AND_FIELD } }] } }
+  ) {
+    tournaments { disciplines { id name } }
+  }
+}
+
+mutation Step5_CreateCategories {
+  updateDisciplines(
+    where: { name: { eq: BASKETBALL } }
+    update: { categories: { create: [{ node: { name: "Mens" } }, { node: { name: "Womens" } }, { node: { name: "3x3" } }, { node: { name: "5x5" } }] } }
+  ) {
+    disciplines { categories { id name } }
+  }
+}
+
+mutation Step6_CreateEvents {
+  updateDisciplines(
+    where: { name: { eq: BASKETBALL } }
+    update: {
+      events: {
+        create: [
+          { node: { name: "Mens 3x3" } }
+          { node: { name: "Womens 3x3" } }
+          { node: { name: "Mens 5x5", maxTeamsPerOrg: 1 } }
+        ]
+      }
+    }
+  ) {
+    disciplines { events { id name } }
+  }
+}
+
+mutation Step7_LinkEventsToCategories {
+  mens3x3: updateEvents(
+    where: { name: { eq: "Mens 3x3" } }
+    update: { categories: { connect: [{ where: { node: { name: { eq: "Mens" } } } }, { where: { node: { name: { eq: "3x3" } } } }] } }
+  ) { events { name categories { name } } }
+
+  womens3x3: updateEvents(
+    where: { name: { eq: "Womens 3x3" } }
+    update: { categories: { connect: [{ where: { node: { name: { eq: "Womens" } } } }, { where: { node: { name: { eq: "3x3" } } } }] } }
+  ) { events { name categories { name } } }
+
+  mens5x5: updateEvents(
+    where: { name: { eq: "Mens 5x5" } }
+    update: { categories: { connect: [{ where: { node: { name: { eq: "Mens" } } } }, { where: { node: { name: { eq: "5x5" } } } }] } }
+  ) { events { name categories { name } } }
+}
+
+mutation Step8_CreateStages {
+  updateEvents(
+    where: { name: { eq: "Mens 5x5" } }
+    update: {
+      stages: {
+        create: [
+          {
+            node: {
+              name: "Group Stage"
+              format: ROUND_ROBIN
+              order: 1
+              roundType: HEAD_TO_HEAD
+            }
+          }
+          {
+            node: {
+              name: "Knockout Stage"
+              format: SINGLE_ELIMINATION
+              order: 2
+              roundType: HEAD_TO_HEAD
+            }
+          }
+        ]
+      }
+    }
+  ) {
+    events {
+      stages {
+        id
+        name
+      }
+    }
+  }
+}
+
+mutation Step10_CreateTeams {
+  uoc: updateOrganizations(where: { slug: { eq: "uoc" } }, update: { teams: { create: [{ node: {
+    name: "UOC Mens Basketball"
+    participant: { create: { node: {} } }
+    members: { create: [
+      { node: { person: { create: { node: { name: "UOC Player 1" } } }, position: "Point Guard", jerseyNumber: 1, captain: true } }
+      { node: { person: { create: { node: { name: "UOC Player 2" } } }, position: "Shooting Guard", jerseyNumber: 2, captain: false } }
+      { node: { person: { create: { node: { name: "UOC Player 3" } } }, position: "Small Forward", jerseyNumber: 3, captain: false } }
+      { node: { person: { create: { node: { name: "UOC Player 4" } } }, position: "Power Forward", jerseyNumber: 4, captain: false } }
+      { node: { person: { create: { node: { name: "UOC Player 5" } } }, position: "Center", jerseyNumber: 5, captain: false } }
+    ] }
+  } }] } }) { organizations { teams { id name } } }
+
+  uop: updateOrganizations(where: { slug: { eq: "uop" } }, update: { teams: { create: [{ node: {
+    name: "UOP Mens Basketball"
+    participant: { create: { node: {} } }
+    members: { create: [
+      { node: { person: { create: { node: { name: "UOP Player 1" } } }, position: "Point Guard", jerseyNumber: 1, captain: true } }
+      { node: { person: { create: { node: { name: "UOP Player 2" } } }, position: "Shooting Guard", jerseyNumber: 2, captain: false } }
+      { node: { person: { create: { node: { name: "UOP Player 3" } } }, position: "Small Forward", jerseyNumber: 3, captain: false } }
+      { node: { person: { create: { node: { name: "UOP Player 4" } } }, position: "Power Forward", jerseyNumber: 4, captain: false } }
+      { node: { person: { create: { node: { name: "UOP Player 5" } } }, position: "Center", jerseyNumber: 5, captain: false } }
+    ] }
+  } }] } }) { organizations { teams { id name } } }
+
+  usj: updateOrganizations(where: { slug: { eq: "usj" } }, update: { teams: { create: [{ node: {
+    name: "USJ Mens Basketball"
+    participant: { create: { node: {} } }
+    members: { create: [
+      { node: { person: { create: { node: { name: "USJ Player 1" } } }, position: "Point Guard", jerseyNumber: 1, captain: true } }
+      { node: { person: { create: { node: { name: "USJ Player 2" } } }, position: "Shooting Guard", jerseyNumber: 2, captain: false } }
+      { node: { person: { create: { node: { name: "USJ Player 3" } } }, position: "Small Forward", jerseyNumber: 3, captain: false } }
+      { node: { person: { create: { node: { name: "USJ Player 4" } } }, position: "Power Forward", jerseyNumber: 4, captain: false } }
+      { node: { person: { create: { node: { name: "USJ Player 5" } } }, position: "Center", jerseyNumber: 5, captain: false } }
+    ] }
+  } }] } }) { organizations { teams { id name } } }
+
+  uok: updateOrganizations(where: { slug: { eq: "uok" } }, update: { teams: { create: [{ node: {
+    name: "UOK Mens Basketball"
+    participant: { create: { node: {} } }
+    members: { create: [
+      { node: { person: { create: { node: { name: "UOK Player 1" } } }, position: "Point Guard", jerseyNumber: 1, captain: true } }
+      { node: { person: { create: { node: { name: "UOK Player 2" } } }, position: "Shooting Guard", jerseyNumber: 2, captain: false } }
+      { node: { person: { create: { node: { name: "UOK Player 3" } } }, position: "Small Forward", jerseyNumber: 3, captain: false } }
+      { node: { person: { create: { node: { name: "UOK Player 4" } } }, position: "Power Forward", jerseyNumber: 4, captain: false } }
+      { node: { person: { create: { node: { name: "UOK Player 5" } } }, position: "Center", jerseyNumber: 5, captain: false } }
+    ] }
+  } }] } }) { organizations { teams { id name } } }
+
+  uom: updateOrganizations(where: { slug: { eq: "uom" } }, update: { teams: { create: [{ node: {
+    name: "UOM Mens Basketball"
+    participant: { create: { node: {} } }
+    members: { create: [
+      { node: { person: { create: { node: { name: "UOM Player 1" } } }, position: "Point Guard", jerseyNumber: 1, captain: true } }
+      { node: { person: { create: { node: { name: "UOM Player 2" } } }, position: "Shooting Guard", jerseyNumber: 2, captain: false } }
+      { node: { person: { create: { node: { name: "UOM Player 3" } } }, position: "Small Forward", jerseyNumber: 3, captain: false } }
+      { node: { person: { create: { node: { name: "UOM Player 4" } } }, position: "Power Forward", jerseyNumber: 4, captain: false } }
+      { node: { person: { create: { node: { name: "UOM Player 5" } } }, position: "Center", jerseyNumber: 5, captain: false } }
+    ] }
+  } }] } }) { organizations { teams { id name } } }
+
+  uoj: updateOrganizations(where: { slug: { eq: "uoj" } }, update: { teams: { create: [{ node: {
+    name: "UOJ Mens Basketball"
+    participant: { create: { node: {} } }
+    members: { create: [
+      { node: { person: { create: { node: { name: "UOJ Player 1" } } }, position: "Point Guard", jerseyNumber: 1, captain: true } }
+      { node: { person: { create: { node: { name: "UOJ Player 2" } } }, position: "Shooting Guard", jerseyNumber: 2, captain: false } }
+      { node: { person: { create: { node: { name: "UOJ Player 3" } } }, position: "Small Forward", jerseyNumber: 3, captain: false } }
+      { node: { person: { create: { node: { name: "UOJ Player 4" } } }, position: "Power Forward", jerseyNumber: 4, captain: false } }
+      { node: { person: { create: { node: { name: "UOJ Player 5" } } }, position: "Center", jerseyNumber: 5, captain: false } }
+    ] }
+  } }] } }) { organizations { teams { id name } } }
+
+  uor: updateOrganizations(where: { slug: { eq: "uor" } }, update: { teams: { create: [{ node: {
+    name: "UOR Mens Basketball"
+    participant: { create: { node: {} } }
+    members: { create: [
+      { node: { person: { create: { node: { name: "UOR Player 1" } } }, position: "Point Guard", jerseyNumber: 1, captain: true } }
+      { node: { person: { create: { node: { name: "UOR Player 2" } } }, position: "Shooting Guard", jerseyNumber: 2, captain: false } }
+      { node: { person: { create: { node: { name: "UOR Player 3" } } }, position: "Small Forward", jerseyNumber: 3, captain: false } }
+      { node: { person: { create: { node: { name: "UOR Player 4" } } }, position: "Power Forward", jerseyNumber: 4, captain: false } }
+      { node: { person: { create: { node: { name: "UOR Player 5" } } }, position: "Center", jerseyNumber: 5, captain: false } }
+    ] }
+  } }] } }) { organizations { teams { id name } } }
+
+  eus: updateOrganizations(where: { slug: { eq: "eus" } }, update: { teams: { create: [{ node: {
+    name: "EUS Mens Basketball"
+    participant: { create: { node: {} } }
+    members: { create: [
+      { node: { person: { create: { node: { name: "EUS Player 1" } } }, position: "Point Guard", jerseyNumber: 1, captain: true } }
+      { node: { person: { create: { node: { name: "EUS Player 2" } } }, position: "Shooting Guard", jerseyNumber: 2, captain: false } }
+      { node: { person: { create: { node: { name: "EUS Player 3" } } }, position: "Small Forward", jerseyNumber: 3, captain: false } }
+      { node: { person: { create: { node: { name: "EUS Player 4" } } }, position: "Power Forward", jerseyNumber: 4, captain: false } }
+      { node: { person: { create: { node: { name: "EUS Player 5" } } }, position: "Center", jerseyNumber: 5, captain: false } }
+    ] }
+  } }] } }) { organizations { teams { id name } } }
+
+  seu: updateOrganizations(where: { slug: { eq: "seu" } }, update: { teams: { create: [{ node: {
+    name: "SEU Mens Basketball"
+    participant: { create: { node: {} } }
+    members: { create: [
+      { node: { person: { create: { node: { name: "SEU Player 1" } } }, position: "Point Guard", jerseyNumber: 1, captain: true } }
+      { node: { person: { create: { node: { name: "SEU Player 2" } } }, position: "Shooting Guard", jerseyNumber: 2, captain: false } }
+      { node: { person: { create: { node: { name: "SEU Player 3" } } }, position: "Small Forward", jerseyNumber: 3, captain: false } }
+      { node: { person: { create: { node: { name: "SEU Player 4" } } }, position: "Power Forward", jerseyNumber: 4, captain: false } }
+      { node: { person: { create: { node: { name: "SEU Player 5" } } }, position: "Center", jerseyNumber: 5, captain: false } }
+    ] }
+  } }] } }) { organizations { teams { id name } } }
+
+  sus: updateOrganizations(where: { slug: { eq: "sus" } }, update: { teams: { create: [{ node: {
+    name: "SUS Mens Basketball"
+    participant: { create: { node: {} } }
+    members: { create: [
+      { node: { person: { create: { node: { name: "SUS Player 1" } } }, position: "Point Guard", jerseyNumber: 1, captain: true } }
+      { node: { person: { create: { node: { name: "SUS Player 2" } } }, position: "Shooting Guard", jerseyNumber: 2, captain: false } }
+      { node: { person: { create: { node: { name: "SUS Player 3" } } }, position: "Small Forward", jerseyNumber: 3, captain: false } }
+      { node: { person: { create: { node: { name: "SUS Player 4" } } }, position: "Power Forward", jerseyNumber: 4, captain: false } }
+      { node: { person: { create: { node: { name: "SUS Player 5" } } }, position: "Center", jerseyNumber: 5, captain: false } }
+    ] }
+  } }] } }) { organizations { teams { id name } } }
+
+  wus: updateOrganizations(where: { slug: { eq: "wus" } }, update: { teams: { create: [{ node: {
+    name: "WUS Mens Basketball"
+    participant: { create: { node: {} } }
+    members: { create: [
+      { node: { person: { create: { node: { name: "WUS Player 1" } } }, position: "Point Guard", jerseyNumber: 1, captain: true } }
+      { node: { person: { create: { node: { name: "WUS Player 2" } } }, position: "Shooting Guard", jerseyNumber: 2, captain: false } }
+      { node: { person: { create: { node: { name: "WUS Player 3" } } }, position: "Small Forward", jerseyNumber: 3, captain: false } }
+      { node: { person: { create: { node: { name: "WUS Player 4" } } }, position: "Power Forward", jerseyNumber: 4, captain: false } }
+      { node: { person: { create: { node: { name: "WUS Player 5" } } }, position: "Center", jerseyNumber: 5, captain: false } }
+    ] }
+  } }] } }) { organizations { teams { id name } } }
+
+  uwu: updateOrganizations(where: { slug: { eq: "uwu" } }, update: { teams: { create: [{ node: {
+    name: "UWU Mens Basketball"
+    participant: { create: { node: {} } }
+    members: { create: [
+      { node: { person: { create: { node: { name: "UWU Player 1" } } }, position: "Point Guard", jerseyNumber: 1, captain: true } }
+      { node: { person: { create: { node: { name: "UWU Player 2" } } }, position: "Shooting Guard", jerseyNumber: 2, captain: false } }
+      { node: { person: { create: { node: { name: "UWU Player 3" } } }, position: "Small Forward", jerseyNumber: 3, captain: false } }
+      { node: { person: { create: { node: { name: "UWU Player 4" } } }, position: "Power Forward", jerseyNumber: 4, captain: false } }
+      { node: { person: { create: { node: { name: "UWU Player 5" } } }, position: "Center", jerseyNumber: 5, captain: false } }
+    ] }
+  } }] } }) { organizations { teams { id name } } }
+}
+
+mutation Step11_LinkPersonsToOrganizations {
+  uoc: updateOrganizations(where: { slug: { eq: "uoc" } }, update: { persons: { connect: [
+    { where: { node: { name: { eq: "UOC Player 1" } } } }
+    { where: { node: { name: { eq: "UOC Player 2" } } } }
+    { where: { node: { name: { eq: "UOC Player 3" } } } }
+    { where: { node: { name: { eq: "UOC Player 4" } } } }
+    { where: { node: { name: { eq: "UOC Player 5" } } } }
+  ] } }) { organizations { slug } }
+
+  uop: updateOrganizations(where: { slug: { eq: "uop" } }, update: { persons: { connect: [
+    { where: { node: { name: { eq: "UOP Player 1" } } } }
+    { where: { node: { name: { eq: "UOP Player 2" } } } }
+    { where: { node: { name: { eq: "UOP Player 3" } } } }
+    { where: { node: { name: { eq: "UOP Player 4" } } } }
+    { where: { node: { name: { eq: "UOP Player 5" } } } }
+  ] } }) { organizations { slug } }
+
+  usj: updateOrganizations(where: { slug: { eq: "usj" } }, update: { persons: { connect: [
+    { where: { node: { name: { eq: "USJ Player 1" } } } }
+    { where: { node: { name: { eq: "USJ Player 2" } } } }
+    { where: { node: { name: { eq: "USJ Player 3" } } } }
+    { where: { node: { name: { eq: "USJ Player 4" } } } }
+    { where: { node: { name: { eq: "USJ Player 5" } } } }
+  ] } }) { organizations { slug } }
+
+  uok: updateOrganizations(where: { slug: { eq: "uok" } }, update: { persons: { connect: [
+    { where: { node: { name: { eq: "UOK Player 1" } } } }
+    { where: { node: { name: { eq: "UOK Player 2" } } } }
+    { where: { node: { name: { eq: "UOK Player 3" } } } }
+    { where: { node: { name: { eq: "UOK Player 4" } } } }
+    { where: { node: { name: { eq: "UOK Player 5" } } } }
+  ] } }) { organizations { slug } }
+
+  uom: updateOrganizations(where: { slug: { eq: "uom" } }, update: { persons: { connect: [
+    { where: { node: { name: { eq: "UOM Player 1" } } } }
+    { where: { node: { name: { eq: "UOM Player 2" } } } }
+    { where: { node: { name: { eq: "UOM Player 3" } } } }
+    { where: { node: { name: { eq: "UOM Player 4" } } } }
+    { where: { node: { name: { eq: "UOM Player 5" } } } }
+  ] } }) { organizations { slug } }
+
+  uoj: updateOrganizations(where: { slug: { eq: "uoj" } }, update: { persons: { connect: [
+    { where: { node: { name: { eq: "UOJ Player 1" } } } }
+    { where: { node: { name: { eq: "UOJ Player 2" } } } }
+    { where: { node: { name: { eq: "UOJ Player 3" } } } }
+    { where: { node: { name: { eq: "UOJ Player 4" } } } }
+    { where: { node: { name: { eq: "UOJ Player 5" } } } }
+  ] } }) { organizations { slug } }
+
+  uor: updateOrganizations(where: { slug: { eq: "uor" } }, update: { persons: { connect: [
+    { where: { node: { name: { eq: "UOR Player 1" } } } }
+    { where: { node: { name: { eq: "UOR Player 2" } } } }
+    { where: { node: { name: { eq: "UOR Player 3" } } } }
+    { where: { node: { name: { eq: "UOR Player 4" } } } }
+    { where: { node: { name: { eq: "UOR Player 5" } } } }
+  ] } }) { organizations { slug } }
+
+  eus: updateOrganizations(where: { slug: { eq: "eus" } }, update: { persons: { connect: [
+    { where: { node: { name: { eq: "EUS Player 1" } } } }
+    { where: { node: { name: { eq: "EUS Player 2" } } } }
+    { where: { node: { name: { eq: "EUS Player 3" } } } }
+    { where: { node: { name: { eq: "EUS Player 4" } } } }
+    { where: { node: { name: { eq: "EUS Player 5" } } } }
+  ] } }) { organizations { slug } }
+
+  seu: updateOrganizations(where: { slug: { eq: "seu" } }, update: { persons: { connect: [
+    { where: { node: { name: { eq: "SEU Player 1" } } } }
+    { where: { node: { name: { eq: "SEU Player 2" } } } }
+    { where: { node: { name: { eq: "SEU Player 3" } } } }
+    { where: { node: { name: { eq: "SEU Player 4" } } } }
+    { where: { node: { name: { eq: "SEU Player 5" } } } }
+  ] } }) { organizations { slug } }
+
+  sus: updateOrganizations(where: { slug: { eq: "sus" } }, update: { persons: { connect: [
+    { where: { node: { name: { eq: "SUS Player 1" } } } }
+    { where: { node: { name: { eq: "SUS Player 2" } } } }
+    { where: { node: { name: { eq: "SUS Player 3" } } } }
+    { where: { node: { name: { eq: "SUS Player 4" } } } }
+    { where: { node: { name: { eq: "SUS Player 5" } } } }
+  ] } }) { organizations { slug } }
+
+  wus: updateOrganizations(where: { slug: { eq: "wus" } }, update: { persons: { connect: [
+    { where: { node: { name: { eq: "WUS Player 1" } } } }
+    { where: { node: { name: { eq: "WUS Player 2" } } } }
+    { where: { node: { name: { eq: "WUS Player 3" } } } }
+    { where: { node: { name: { eq: "WUS Player 4" } } } }
+    { where: { node: { name: { eq: "WUS Player 5" } } } }
+  ] } }) { organizations { slug } }
+
+  uwu: updateOrganizations(where: { slug: { eq: "uwu" } }, update: { persons: { connect: [
+    { where: { node: { name: { eq: "UWU Player 1" } } } }
+    { where: { node: { name: { eq: "UWU Player 2" } } } }
+    { where: { node: { name: { eq: "UWU Player 3" } } } }
+    { where: { node: { name: { eq: "UWU Player 4" } } } }
+    { where: { node: { name: { eq: "UWU Player 5" } } } }
+  ] } }) { organizations { slug } }
+}
+
+mutation Step12_RegisterTeamsForEvent {
+  updateEvents(
+    where: { name: { eq: "Mens 5x5" } }
+    update: {
+      participants: {
+        connect: [
+          { where: { node: { team: { name: { eq: "UOC Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "UOP Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "USJ Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "UOK Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "UOM Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "UOJ Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "UOR Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "EUS Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "SEU Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "SUS Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "WUS Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "UWU Mens Basketball" } } } } }
+        ]
+      }
+    }
+  ) {
+    events { name participants { id team { name } } }
+  }
+}
+
+mutation Step13a_CreateGroupParticipants {
+  updateStages(
+    where: { name: { eq: "Group Stage" } }
+    update: {
+      groups: {
+        create: [
+          { node: { name: "Group A", maxParticipantsPerGroup: 3 } }
+          { node: { name: "Group B", maxParticipantsPerGroup: 3 } }
+          { node: { name: "Group C", maxParticipantsPerGroup: 3 } }
+          { node: { name: "Group D", maxParticipantsPerGroup: 3 } }
+        ]
+      }
+    }
+  ) {
+    stages {
+      groups {
+        id
+        name
+      }
+    }
+  }
+}
+
+mutation Step13b_LinkGroupParticipantsToTeams {
+  groupA: updateGroups(
+    where: { name: { eq: "Group A" } }
+    update: {
+      groupParticipants: {
+        connect: [
+          { where: { node: { team: { name: { eq: "UOC Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "UOM Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "USJ Mens Basketball" } } } } }
+        ]
+      }
+    }
+  ) {
+    groups { name groupParticipants { id team { name } } }
+  }
+
+  groupB: updateGroups(
+    where: { name: { eq: "Group B" } }
+    update: {
+      groupParticipants: {
+        connect: [
+          { where: { node: { team: { name: { eq: "UOK Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "UOP Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "UOJ Mens Basketball" } } } } }
+        ]
+      }
+    }
+  ) {
+    groups { name groupParticipants { id team { name } } }
+  }
+
+  groupC: updateGroups(
+    where: { name: { eq: "Group C" } }
+    update: {
+      groupParticipants: {
+        connect: [
+          { where: { node: { team: { name: { eq: "UOR Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "WUS Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "SEU Mens Basketball" } } } } }
+        ]
+      }
+    }
+  ) {
+    groups { name groupParticipants { id team { name } } }
+  }
+
+  groupD: updateGroups(
+    where: { name: { eq: "Group D" } }
+    update: {
+      groupParticipants: {
+        connect: [
+          { where: { node: { team: { name: { eq: "SUS Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "EUS Mens Basketball" } } } } }
+          { where: { node: { team: { name: { eq: "UWU Mens Basketball" } } } } }
+        ]
+      }
+    }
+  ) {
+    groups { name groupParticipants { id team { name } } }
+  }
+}
+
+Round-robin schedule per 3-team group: R1 = team1 v team2, R2 = team1 v team3,
+R3 = team2 v team3. Rounds are created directly under the Stage (Round.stage
+is always set, per the group-stage schema change) - Step14b then attaches
+each round to its Group via the separate IN_GROUP edge.
+mutation Step14a_CreateGroupRounds {
+  updateStages(
+    where: { name: { eq: "Group Stage" } }
+    update: {
+      rounds: {
+        create: [
+          { node: { name: "Group A - Round 1: UOC vs UOM" } }
+          { node: { name: "Group A - Round 2: UOC vs USJ" } }
+          { node: { name: "Group A - Round 3: UOM vs USJ" } }
+          { node: { name: "Group B - Round 1: UOK vs UOP" } }
+          { node: { name: "Group B - Round 2: UOK vs UOJ" } }
+          { node: { name: "Group B - Round 3: UOP vs UOJ" } }
+          { node: { name: "Group C - Round 1: UOR vs WUS" } }
+          { node: { name: "Group C - Round 2: UOR vs SEU" } }
+          { node: { name: "Group C - Round 3: WUS vs SEU" } }
+          { node: { name: "Group D - Round 1: SUS vs EUS" } }
+          { node: { name: "Group D - Round 2: SUS vs UWU" } }
+          { node: { name: "Group D - Round 3: EUS vs UWU" } }
+        ]
+      }
+    }
+  ) {
+    stages {
+      rounds { id name }
+    }
+  }
+}
+
+mutation Step14b_LinkGroupRoundsToStage {
+  groupA: updateGroups(
+    where: { name: { eq: "Group A" } }
+    update: {
+      rounds: {
+        connect: [
+          { where: { node: { name: { eq: "Group A - Round 1: UOC vs UOM" } } } }
+          { where: { node: { name: { eq: "Group A - Round 2: UOC vs USJ" } } } }
+          { where: { node: { name: { eq: "Group A - Round 3: UOM vs USJ" } } } }
+        ]
+      }
+    }
+  ) {
+    groups { name rounds { name } }
+  }
+
+  groupB: updateGroups(
+    where: { name: { eq: "Group B" } }
+    update: {
+      rounds: {
+        connect: [
+          { where: { node: { name: { eq: "Group B - Round 1: UOK vs UOP" } } } }
+          { where: { node: { name: { eq: "Group B - Round 2: UOK vs UOJ" } } } }
+          { where: { node: { name: { eq: "Group B - Round 3: UOP vs UOJ" } } } }
+        ]
+      }
+    }
+  ) {
+    groups { name rounds { name } }
+  }
+
+  groupC: updateGroups(
+    where: { name: { eq: "Group C" } }
+    update: {
+      rounds: {
+        connect: [
+          { where: { node: { name: { eq: "Group C - Round 1: UOR vs WUS" } } } }
+          { where: { node: { name: { eq: "Group C - Round 2: UOR vs SEU" } } } }
+          { where: { node: { name: { eq: "Group C - Round 3: WUS vs SEU" } } } }
+        ]
+      }
+    }
+  ) {
+    groups { name rounds { name } }
+  }
+
+  groupD: updateGroups(
+    where: { name: { eq: "Group D" } }
+    update: {
+      rounds: {
+        connect: [
+          { where: { node: { name: { eq: "Group D - Round 1: SUS vs EUS" } } } }
+          { where: { node: { name: { eq: "Group D - Round 2: SUS vs UWU" } } } }
+          { where: { node: { name: { eq: "Group D - Round 3: EUS vs UWU" } } } }
+        ]
+      }
+    }
+  ) {
+    groups { name rounds { name } }
+  }
+}
+
+mutation Step15_CreateKnockoutRounds {
+  updateStages(
+    where: { name: { eq: "Knockout Stage" } }
+    update: {
+      rounds: {
+        create: [
+          { node: { name: "QF1: UOC vs UOM" } }
+          { node: { name: "QF2: UOK vs UOP" } }
+          { node: { name: "QF3: UOR vs WUS" } }
+          { node: { name: "QF4: SUS vs EUS" } }
+          { node: { name: "SF1: UOC vs UOK" } }
+          { node: { name: "SF2: SUS vs UOR" } }
+          { node: { name: "Bronze Final: UOK vs UOR" } }
+          { node: { name: "Final: UOC vs SUS" } }
+        ]
+      }
+    }
+  ) {
+    stages { rounds { id name } }
+  }
+}
+
+mutation Step16_CreateRoundParticipants {
+  gaR1: updateRounds(where: { name: { eq: "Group A - Round 1: UOC vs UOM" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "HOME" } }, { node: { performance: 0, label: "AWAY" } }] } }) { rounds { name } }
+  gaR2: updateRounds(where: { name: { eq: "Group A - Round 2: UOC vs USJ" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "HOME" } }, { node: { performance: 0, label: "AWAY" } }] } }) { rounds { name } }
+  gaR3: updateRounds(where: { name: { eq: "Group A - Round 3: UOM vs USJ" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "HOME" } }, { node: { performance: 0, label: "AWAY" } }] } }) { rounds { name } }
+
+  gbR1: updateRounds(where: { name: { eq: "Group B - Round 1: UOK vs UOP" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "HOME" } }, { node: { performance: 0, label: "AWAY" } }] } }) { rounds { name } }
+  gbR2: updateRounds(where: { name: { eq: "Group B - Round 2: UOK vs UOJ" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "HOME" } }, { node: { performance: 0, label: "AWAY" } }] } }) { rounds { name } }
+  gbR3: updateRounds(where: { name: { eq: "Group B - Round 3: UOP vs UOJ" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "HOME" } }, { node: { performance: 0, label: "AWAY" } }] } }) { rounds { name } }
+
+  gcR1: updateRounds(where: { name: { eq: "Group C - Round 1: UOR vs WUS" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "HOME" } }, { node: { performance: 0, label: "AWAY" } }] } }) { rounds { name } }
+  gcR2: updateRounds(where: { name: { eq: "Group C - Round 2: UOR vs SEU" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "HOME" } }, { node: { performance: 0, label: "AWAY" } }] } }) { rounds { name } }
+  gcR3: updateRounds(where: { name: { eq: "Group C - Round 3: WUS vs SEU" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "HOME" } }, { node: { performance: 0, label: "AWAY" } }] } }) { rounds { name } }
+
+  gdR1: updateRounds(where: { name: { eq: "Group D - Round 1: SUS vs EUS" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "HOME" } }, { node: { performance: 0, label: "AWAY" } }] } }) { rounds { name } }
+  gdR2: updateRounds(where: { name: { eq: "Group D - Round 2: SUS vs UWU" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "HOME" } }, { node: { performance: 0, label: "AWAY" } }] } }) { rounds { name } }
+  gdR3: updateRounds(where: { name: { eq: "Group D - Round 3: EUS vs UWU" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "HOME" } }, { node: { performance: 0, label: "AWAY" } }] } }) { rounds { name } }
+}
+
+mutation Step17_LinkRoundParticipantsToTeams {
+  gaR1h: updateParticipants(where: { team: { name: { eq: "UOC Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group A - Round 1: UOC vs UOM" } }, label: { eq: "HOME" } } } }] } }) { participants { id } }
+  gaR1a: updateParticipants(where: { team: { name: { eq: "UOM Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group A - Round 1: UOC vs UOM" } }, label: { eq: "AWAY" } } } }] } }) { participants { id } }
+ 
+  gaR2h: updateParticipants(where: { team: { name: { eq: "UOC Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group A - Round 2: UOC vs USJ" } }, label: { eq: "HOME" } } } }] } }) { participants { id } }
+  gaR2a: updateParticipants(where: { team: { name: { eq: "USJ Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group A - Round 2: UOC vs USJ" } }, label: { eq: "AWAY" } } } }] } }) { participants { id } }
+ 
+  gaR3h: updateParticipants(where: { team: { name: { eq: "UOM Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group A - Round 3: UOM vs USJ" } }, label: { eq: "HOME" } } } }] } }) { participants { id } }
+  gaR3a: updateParticipants(where: { team: { name: { eq: "USJ Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group A - Round 3: UOM vs USJ" } }, label: { eq: "AWAY" } } } }] } }) { participants { id } }
+ 
+  gbR1h: updateParticipants(where: { team: { name: { eq: "UOK Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group B - Round 1: UOK vs UOP" } }, label: { eq: "HOME" } } } }] } }) { participants { id } }
+  gbR1a: updateParticipants(where: { team: { name: { eq: "UOP Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group B - Round 1: UOK vs UOP" } }, label: { eq: "AWAY" } } } }] } }) { participants { id } }
+ 
+  gbR2h: updateParticipants(where: { team: { name: { eq: "UOK Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group B - Round 2: UOK vs UOJ" } }, label: { eq: "HOME" } } } }] } }) { participants { id } }
+  gbR2a: updateParticipants(where: { team: { name: { eq: "UOJ Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group B - Round 2: UOK vs UOJ" } }, label: { eq: "AWAY" } } } }] } }) { participants { id } }
+ 
+  gbR3h: updateParticipants(where: { team: { name: { eq: "UOP Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group B - Round 3: UOP vs UOJ" } }, label: { eq: "HOME" } } } }] } }) { participants { id } }
+  gbR3a: updateParticipants(where: { team: { name: { eq: "UOJ Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group B - Round 3: UOP vs UOJ" } }, label: { eq: "AWAY" } } } }] } }) { participants { id } }
+ 
+  gcR1h: updateParticipants(where: { team: { name: { eq: "UOR Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group C - Round 1: UOR vs WUS" } }, label: { eq: "HOME" } } } }] } }) { participants { id } }
+  gcR1a: updateParticipants(where: { team: { name: { eq: "WUS Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group C - Round 1: UOR vs WUS" } }, label: { eq: "AWAY" } } } }] } }) { participants { id } }
+ 
+  gcR2h: updateParticipants(where: { team: { name: { eq: "UOR Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group C - Round 2: UOR vs SEU" } }, label: { eq: "HOME" } } } }] } }) { participants { id } }
+  gcR2a: updateParticipants(where: { team: { name: { eq: "SEU Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group C - Round 2: UOR vs SEU" } }, label: { eq: "AWAY" } } } }] } }) { participants { id } }
+ 
+  gcR3h: updateParticipants(where: { team: { name: { eq: "WUS Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group C - Round 3: WUS vs SEU" } }, label: { eq: "HOME" } } } }] } }) { participants { id } }
+  gcR3a: updateParticipants(where: { team: { name: { eq: "SEU Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group C - Round 3: WUS vs SEU" } }, label: { eq: "AWAY" } } } }] } }) { participants { id } }
+ 
+  gdR1h: updateParticipants(where: { team: { name: { eq: "SUS Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group D - Round 1: SUS vs EUS" } }, label: { eq: "HOME" } } } }] } }) { participants { id } }
+  gdR1a: updateParticipants(where: { team: { name: { eq: "EUS Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group D - Round 1: SUS vs EUS" } }, label: { eq: "AWAY" } } } }] } }) { participants { id } }
+ 
+  gdR2h: updateParticipants(where: { team: { name: { eq: "SUS Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group D - Round 2: SUS vs UWU" } }, label: { eq: "HOME" } } } }] } }) { participants { id } }
+  gdR2a: updateParticipants(where: { team: { name: { eq: "UWU Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group D - Round 2: SUS vs UWU" } }, label: { eq: "AWAY" } } } }] } }) { participants { id } }
+ 
+  gdR3h: updateParticipants(where: { team: { name: { eq: "EUS Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group D - Round 3: EUS vs UWU" } }, label: { eq: "HOME" } } } }] } }) { participants { id } }
+  gdR3a: updateParticipants(where: { team: { name: { eq: "UWU Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Group D - Round 3: EUS vs UWU" } }, label: { eq: "AWAY" } } } }] } }) { participants { id } }
+}
+
+mutation Step18_CreateKnockoutRoundParticipants {
+  qf1: updateRounds(where: { name: { eq: "QF1: UOC vs UOM" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "QF1-UOC" } }, { node: { performance: 0, label: "QF1-UOM" } }] } }) { rounds { name } }
+  qf2: updateRounds(where: { name: { eq: "QF2: UOK vs UOP" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "QF2-UOP" } }, { node: { performance: 0, label: "QF2-UOK" } }] } }) { rounds { name } }
+  qf3: updateRounds(where: { name: { eq: "QF3: UOR vs WUS" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "QF3-UOR" } }, { node: { performance: 0, label: "QF3-WUS" } }] } }) { rounds { name } }
+  qf4: updateRounds(where: { name: { eq: "QF4: SUS vs EUS" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "QF4-SUS" } }, { node: { performance: 0, label: "QF4-EUS" } }] } }) { rounds { name } }
+ 
+  sf1: updateRounds(where: { name: { eq: "SF1: UOC vs UOK" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "SF1-UOC" } }, { node: { performance: 0, label: "SF1-UOK" } }] } }) { rounds { name } }
+  sf2: updateRounds(where: { name: { eq: "SF2: SUS vs UOR" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "SF2-UOR" } }, { node: { performance: 0, label: "SF2-SUS" } }] } }) { rounds { name } }
+ 
+  br: updateRounds(where: { name: { eq: "Bronze Final: UOK vs UOR" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "BR-UOK" } }, { node: { performance: 0, label: "BR-UOR" } }] } }) { rounds { name } }
+  fin: updateRounds(where: { name: { eq: "Final: UOC vs SUS" } }, update: { roundParticipants: { create: [{ node: { performance: 0, label: "FIN-SUS" } }, { node: { performance: 0, label: "FIN-UOC" } }] } }) { rounds { name } }
+}
+
+mutation Step19_LinkKnockoutRoundParticipantsToTeams {
+  qf1a: updateParticipants(where: { team: { name: { eq: "UOC Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "QF1: UOC vs UOM" } }, label: { eq: "QF1-UOC" } } } }] } }) { participants { id } }
+  qf1b: updateParticipants(where: { team: { name: { eq: "UOM Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "QF1: UOC vs UOM" } }, label: { eq: "QF1-UOM" } } } }] } }) { participants { id } }
+ 
+  qf2a: updateParticipants(where: { team: { name: { eq: "UOP Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "QF2: UOK vs UOP" } }, label: { eq: "QF2-UOP" } } } }] } }) { participants { id } }
+  qf2b: updateParticipants(where: { team: { name: { eq: "UOK Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "QF2: UOK vs UOP" } }, label: { eq: "QF2-UOK" } } } }] } }) { participants { id } }
+ 
+  qf3a: updateParticipants(where: { team: { name: { eq: "UOR Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "QF3: UOR vs WUS" } }, label: { eq: "QF3-UOR" } } } }] } }) { participants { id } }
+  qf3b: updateParticipants(where: { team: { name: { eq: "WUS Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "QF3: UOR vs WUS" } }, label: { eq: "QF3-WUS" } } } }] } }) { participants { id } }
+ 
+  qf4a: updateParticipants(where: { team: { name: { eq: "SUS Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "QF4: SUS vs EUS" } }, label: { eq: "QF4-SUS" } } } }] } }) { participants { id } }
+  qf4b: updateParticipants(where: { team: { name: { eq: "EUS Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "QF4: SUS vs EUS" } }, label: { eq: "QF4-EUS" } } } }] } }) { participants { id } }
+ 
+  sf1a: updateParticipants(where: { team: { name: { eq: "UOC Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "SF1: UOC vs UOK" } }, label: { eq: "SF1-UOC" } } } }] } }) { participants { id } }
+  sf1b: updateParticipants(where: { team: { name: { eq: "UOK Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "SF1: UOC vs UOK" } }, label: { eq: "SF1-UOK" } } } }] } }) { participants { id } }
+ 
+  sf2a: updateParticipants(where: { team: { name: { eq: "UOR Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "SF2: SUS vs UOR" } }, label: { eq: "SF2-UOR" } } } }] } }) { participants { id } }
+  sf2b: updateParticipants(where: { team: { name: { eq: "SUS Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "SF2: SUS vs UOR" } }, label: { eq: "SF2-SUS" } } } }] } }) { participants { id } }
+ 
+  bra: updateParticipants(where: { team: { name: { eq: "UOK Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Bronze Final: UOK vs UOR" } }, label: { eq: "BR-UOK" } } } }] } }) { participants { id } }
+  brb: updateParticipants(where: { team: { name: { eq: "UOR Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Bronze Final: UOK vs UOR" } }, label: { eq: "BR-UOR" } } } }] } }) { participants { id } }
+ 
+  fina: updateParticipants(where: { team: { name: { eq: "SUS Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Final: UOC vs SUS" } }, label: { eq: "FIN-SUS" } } } }] } }) { participants { id } }
+  finb: updateParticipants(where: { team: { name: { eq: "UOC Mens Basketball" } } }, update: { roundParticipants: { connect: [{ where: { node: { round: { name: { eq: "Final: UOC vs SUS" } }, label: { eq: "FIN-UOC" } } } }] } }) { participants { id } }
+}
