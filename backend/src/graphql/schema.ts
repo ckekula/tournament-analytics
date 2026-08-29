@@ -1,20 +1,3 @@
-/**
- * Neo4j GraphQL schema.
- *
- * - `GroupParticipant` and `RoundParticipant` each got an optional `label`
- *   String field purely as a seed-data/lookup convenience — they otherwise
- *   have no scalar fields, so once created there is nothing to `where`-match
- *   on to connect their relationships in a later mutation.
- * - Composite unique constraint (Activity.name + Activity.tournament) is not
- *   expressible via SDL directives in @neo4j/graphql — enforce via a Cypher
- *   constraint (`CREATE CONSTRAINT ... FOR (a:Activity) REQUIRE (a.name, a.tournament) IS UNIQUE`)
- *   or at the resolver layer.
- * - Regex validations (@Matches in the original entities, e.g. "letters,
- *   numbers, and spaces only") are not enforced by GraphQL SDL itself.
- *   Enforce these at the API layer (e.g. via a validation middleware/plugin,
- *   or a library like graphql-constraint-directive).
- */
-
 export const typeDefs = `#graphql
   scalar JSON
 
@@ -118,6 +101,10 @@ export const typeDefs = `#graphql
     maxTeamsPerOrg: Int
     discipline: Discipline @relationship(type: "HAS_EVENT", direction: IN)
     stages: [Stage!]! @relationship(type: "HAS_STAGE", direction: OUT)
+    # Many side of the single Participant.event relationship below.
+    # Nested "connect" for a Participant must happen from THIS side
+    # (or on Participant create), since single relationship fields
+    # don't support nested connect.
     participants: [Participant!]! @relationship(type: "PARTICIPATES_IN", direction: IN)
     categories: [Category!]! @relationship(type: "IN_CATEGORY", direction: OUT)
     createdAt: DateTime! @timestamp(operations: [CREATE])
@@ -132,7 +119,6 @@ export const typeDefs = `#graphql
     roundType: RoundTypeEnum!
     event: Event @relationship(type: "HAS_STAGE", direction: IN)
     rounds: [Round!]! @relationship(type: "HAS_ROUND", direction: OUT)
-    groupStage: GroupStage @relationship(type: "HAS_GROUP_STAGE", direction: OUT)
     createdAt: DateTime! @timestamp(operations: [CREATE])
     updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
   }
@@ -140,9 +126,8 @@ export const typeDefs = `#graphql
   type Round @node {
     id: ID! @id
     name: String!
-    isGroupRound: Boolean!
     stage: Stage @relationship(type: "HAS_ROUND", direction: IN)
-    group: Group @relationship(type: "HAS_GROUP", direction: IN)
+    group: Group @relationship(type: "IN_GROUP", direction: OUT)
     roundParticipants: [RoundParticipant!]! @relationship(type: "HAS_ROUND_PARTICIPANT", direction: OUT)
     createdAt: DateTime! @timestamp(operations: [CREATE])
     updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
@@ -155,16 +140,28 @@ export const typeDefs = `#graphql
     label: String
     round: Round @relationship(type: "HAS_ROUND_PARTICIPANT", direction: IN)
     participant: Participant @relationship(type: "PARTICIPATED_IN", direction: IN)
+    # Forward-only bracket advancement. Multiple targets support branching
+    # paths (e.g. winner -> final, loser -> bronze-final).
+    advancesTo: [RoundParticipant!]! @relationship(type: "ADVANCES_TO", direction: OUT)
   }
 
   type Participant @node {
     id: ID! @id
     type: ParticipantTypeEnum!
-    events: [Event!]! @relationship(type: "PARTICIPATES_IN", direction: OUT)
+    # Single relationship: a Participant is a
+    # registration scoped to exactly one Event. A competitor entering
+    # multiple events (e.g. 100m and 200m) gets a separate Participant
+    # node per event, not one Participant linked to many Events.
+
+    # Neo4j has no relationship-cardinality constraints, so this is not
+    # enforced at the database level - nothing stops a second EVENT
+    # relationship being created on the same node. The service
+    # layer must guard against connecting more than one Event to a given
+    # Participant, otherwise reads become non-deterministic.
+    event: Event @relationship(type: "PARTICIPATES_IN", direction: OUT)
     individual: Individual @relationship(type: "REPRESENTS", direction: IN)
     team: Team @relationship(type: "REPRESENTS", direction: IN)
     roundParticipants: [RoundParticipant!]! @relationship(type: "PARTICIPATED_IN", direction: OUT)
-    groupParticipants: [GroupParticipant!]! @relationship(type: "IN_GROUP", direction: OUT)
     createdAt: DateTime! @timestamp(operations: [CREATE])
     updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
   }
@@ -205,30 +202,13 @@ export const typeDefs = `#graphql
     updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
   }
 
-  type GroupStage @node {
-    id: ID! @id
-    stage: Stage @relationship(type: "HAS_GROUP_STAGE", direction: IN)
-    groups: [Group!]! @relationship(type: "HAS_GROUP", direction: OUT)
-    createdAt: DateTime! @timestamp(operations: [CREATE])
-    updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
-  }
-
   type Group @node {
     id: ID! @id
     name: String!
     maxParticipantsPerGroup: Int
-    groupStage: GroupStage @relationship(type: "HAS_GROUP", direction: IN)
-    groupParticipants: [GroupParticipant!]! @relationship(type: "HAS_GROUP_PARTICIPANT", direction: OUT)
-    rounds: [Round!]! @relationship(type: "HAS_GROUP", direction: OUT)
-    createdAt: DateTime! @timestamp(operations: [CREATE])
-    updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
-  }
-
-  type GroupParticipant @node {
-    id: ID! @id
-    label: String
-    participant: Participant @relationship(type: "IN_GROUP", direction: IN)
-    group: Group @relationship(type: "HAS_GROUP_PARTICIPANT", direction: IN)
+    stage: Stage @relationship(type: "HAS_GROUP", direction: IN)
+    groupParticipants: [Participant!]! @relationship(type: "HAS_GROUP_PARTICIPANT", direction: OUT)
+    rounds: [Round!]! @relationship(type: "IN_GROUP", direction: IN)
     createdAt: DateTime! @timestamp(operations: [CREATE])
     updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
   }
